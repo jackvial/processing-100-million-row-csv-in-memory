@@ -147,7 +147,7 @@ function prettyPrintMemoryUsage({
 function main() {
     // Example: Creating a DataFrame
 
-    const nRows = 50_000_000;
+    const nRows = 26_000_000;
     prettyPrintMemoryUsage({
         nRows
     });
@@ -260,6 +260,7 @@ function main() {
 
     const summedFloatsByColor = df.sum(groupedByColor, 'price');
     console.log('Sum of price by color groups:', summedFloatsByColor);
+    console.timeEnd('Groupby color and Sum price');
 
     prettyPrintMemoryUsage({
         nRows,
