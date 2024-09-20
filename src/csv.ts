@@ -1,6 +1,6 @@
 
 import fs from 'fs';
-import { ZeroCopyDataFrame, DataType, Column, getColumnSize } from './df';
+import { ZeroCopyDataFrame, DataType } from './df';
 
 // Function to export DataFrame to CSV
 export function exportToCSV(df: ZeroCopyDataFrame, outputFilePath: string) {
@@ -31,31 +31,4 @@ export function formatValueForCSV(value: any, dataType: DataType): string {
         default:
             return String(value);  // Convert other types to string
     }
-}
-
-// Allocate buffers based on row count and data types
-export function allocateBuffers(rowCount: number, columns: { name: string; dataType: DataType; }[]) {
-    return columns.map((col) => {
-        let bufferSize: number;
-        switch (col.dataType) {
-            case 'int32': bufferSize = rowCount * 4; break;
-            case 'float32': bufferSize = rowCount * 4; break;
-            case 'bool': bufferSize = rowCount * 1; break;
-            case 'string': bufferSize = rowCount * 1; break;  // 1 byte per string index
-            default: throw new Error(`Unsupported data type: ${col.dataType}`);
-        }
-        return {
-            name: col.name,
-            dataType: col.dataType,
-            buffer: new ArrayBuffer(bufferSize),
-            dataView: new DataView(new ArrayBuffer(bufferSize)),
-            length: rowCount,
-        };
-    });
-}
-
-// Define an interface for the string dictionary
-export interface StringColumnDict {
-    valueToIndex: { [value: string]: number };  // Mapping from string to index
-    strings: string[];  // Array of unique strings
 }
