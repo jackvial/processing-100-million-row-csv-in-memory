@@ -112,8 +112,15 @@ function bytesToMB(bytes: number): string {
     return (bytes / 1024 / 1024).toFixed(4);
 }
 
-function prettyPrintMemoryUsage(df?: ZeroCopyDataFrame) {
+function prettyPrintMemoryUsage({
+    nRows,
+    df
+}: {
+    nRows?: number,
+    df?: ZeroCopyDataFrame
+}) {
     console.log('----------------------------------------');
+    console.log(`Memory Usage with ${nRows} rows:`);
     const memoryUsage = process.memoryUsage();
 
     console.log('Memory Usage:');
@@ -133,22 +140,23 @@ function prettyPrintMemoryUsage(df?: ZeroCopyDataFrame) {
 function main() {
     // Example: Creating a DataFrame
 
-    prettyPrintMemoryUsage();
-    
-    // Allocate 1 GB for each column
-    const colDataSize = 2 ** 30;  // 1 GB in bytes
-    
-    // Number of rows for each type
-    const intRowCount = colDataSize / 4;  // 4 bytes (for int32)
-    const floatRowCount = colDataSize / 4;  // 4 bytes (for float32)
-    const boolRowCount = colDataSize;  // 1 byte (for bool)
+    const nRows = 10_000_000_000;
+    prettyPrintMemoryUsage({
+        nRows
+    });
+
+
+    // Calculate buffer size for each column based on row count
+    const intColSize = nRows * 4;  // 4 bytes per int32 value
+    const floatColSize = nRows * 4;  // 4 bytes per float32 value
+    const boolColSize = nRows * 1;  // 1 byte per bool value
 
     // Create buffers for each column. 
     // These buffers will be sized according to data type
     // So all columns will have the same number of rows
-    const intBuffer = new ArrayBuffer(colDataSize);
-    const floatBuffer = new ArrayBuffer(colDataSize);
-    const boolBuffer = new ArrayBuffer(colDataSize);
+    const intBuffer = new ArrayBuffer(intColSize);
+    const floatBuffer = new ArrayBuffer(floatColSize);
+    const boolBuffer = new ArrayBuffer(boolColSize);
     
     // Create DataView instances. This is a zero-copy view/interface of the underlying buffer
     const int32View = new DataView(intBuffer);
@@ -156,17 +164,17 @@ function main() {
     const boolView = new DataView(boolBuffer);
     
     // Populate the entire int32 column with values (filling all rows)
-    for (let i = 0; i < intRowCount; i++) {
+    for (let i = 0; i < nRows; i++) {
       int32View.setInt32(i * 4, i % 10, true);  // Store values 0 to 9 repeatedly (example)
     }
     
     // Populate the entire float32 column with values (filling all rows)
-    for (let i = 0; i < floatRowCount; i++) {
+    for (let i = 0; i < nRows; i++) {
       float32View.setFloat32(i * 4, i * 0.01, true);  // Store floating-point values
     }
     
     // Populate the entire bool column with alternating true/false (1/0)
-    for (let i = 0; i < boolRowCount; i++) {
+    for (let i = 0; i < nRows; i++) {
       boolView.setUint8(i, i % 2);  // Alternate between 1 (true) and 0 (false)
     }
     
@@ -177,21 +185,21 @@ function main() {
         dataType: 'int32',
         buffer: intBuffer,
         dataView: new DataView(intBuffer),
-        length: intRowCount  // Number of rows we can store with 1 GB of data
+        length: nRows  // Number of rows we can store with 1 GB of data
       },
       {
         name: 'float_col',
         dataType: 'float32',
         buffer: floatBuffer,
         dataView: new DataView(floatBuffer),
-        length: floatRowCount  // Same here for float32
+        length: nRows  // Same here for float32
       },
       {
         name: 'bool_col',
         dataType: 'bool',
         buffer: boolBuffer,
         dataView: new DataView(boolBuffer),
-        length: boolRowCount  // For bools, 1 GB stores this many values
+        length: nRows  // For bools, 1 GB stores this many values
       }
     ];
     
@@ -199,7 +207,9 @@ function main() {
     const df = new ZeroCopyDataFrame(columns);
     
     // Log system and DataFrame memory usage (optional)
-    prettyPrintMemoryUsage(df);
+    prettyPrintMemoryUsage({
+        nRows,
+    });
     
     // Access and print a few rows (avoid printing all rows since 1 GB has too many rows)
     console.log("First 5 rows:");
@@ -213,7 +223,9 @@ function main() {
     const summed = df.sum(grouped, 'float_col');
     console.log('Sum of float_col by int_col groups:', summed);
 
-    prettyPrintMemoryUsage(df);
+    prettyPrintMemoryUsage({
+        nRows
+    });
 }
 
 main();
