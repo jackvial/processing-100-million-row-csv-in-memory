@@ -9,9 +9,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@apache-arrow/ts": "^17.0.0",
+    "csv-parser": "^3.0.0",
+    "nodejs-polars": "^0.15.0",
     "typescript": "^5.6.2"
   },
   "devDependencies": {
-    "@types/node": "^22.5.5"
+    "@types/node": "^22.5.5",
+    "@types/nodejs-polars": "^0.15.0"
   }
 }
