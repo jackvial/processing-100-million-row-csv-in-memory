@@ -1,4 +1,4 @@
-type DataType = 'int32' | 'float32' | 'bool';
+type DataType = 'int32' | 'float32' | 'bool' | 'string';
 
 interface Column {
   name: string;
@@ -6,6 +6,7 @@ interface Column {
   buffer: ArrayBuffer;
   dataView: DataView;
   length: number;
+  strings?: string[];
 }
 
 class ZeroCopyDataFrame {
@@ -36,6 +37,10 @@ class ZeroCopyDataFrame {
         return dataView.getFloat32(offset, true);
       case 'bool':
         return dataView.getUint8(offset) === 1;  // Boolean values as 0/1
+    case 'string':
+        if (!column.strings) throw new Error(`String column missing string array`);
+        const stringIndex = dataView.getUint8(offset);
+        return column.strings[stringIndex];
       default:
         throw new Error(`Unsupported data type: ${dataType}`);
     }
@@ -57,6 +62,8 @@ class ZeroCopyDataFrame {
         return 4;
       case 'bool':
         return 1;
+    case 'string':
+        return 1;  // 1 byte to store the index of the string
       default:
         throw new Error(`Unsupported data type: ${dataType}`);
     }
@@ -140,68 +147,87 @@ function prettyPrintMemoryUsage({
 function main() {
     // Example: Creating a DataFrame
 
-    const nRows = 10_000_000_000;
+    const nRows = 500_000_000;
     prettyPrintMemoryUsage({
         nRows
     });
 
+  // Calculate buffer size for each column based on row count
+  const intColSize = nRows * 4;  // 4 bytes per int32 value
+  const floatColSize = nRows * 4;  // 4 bytes per float32 value
+  const boolColSize = nRows * 1;  // 1 byte per bool value
+  const stringColSize = nRows * 1;  // 1 byte to store the string index
 
-    // Calculate buffer size for each column based on row count
-    const intColSize = nRows * 4;  // 4 bytes per int32 value
-    const floatColSize = nRows * 4;  // 4 bytes per float32 value
-    const boolColSize = nRows * 1;  // 1 byte per bool value
+  console.log('Number of rows for each type:');
+  console.log(`int32: ${nRows}`);
+  console.log(`float32: ${nRows}`);
+  console.log(`bool: ${nRows}`);
+  console.log(`string: ${nRows}`);
 
-    // Create buffers for each column. 
-    // These buffers will be sized according to data type
-    // So all columns will have the same number of rows
-    const intBuffer = new ArrayBuffer(intColSize);
-    const floatBuffer = new ArrayBuffer(floatColSize);
-    const boolBuffer = new ArrayBuffer(boolColSize);
-    
-    // Create DataView instances. This is a zero-copy view/interface of the underlying buffer
-    const int32View = new DataView(intBuffer);
-    const float32View = new DataView(floatBuffer);
-    const boolView = new DataView(boolBuffer);
-    
-    // Populate the entire int32 column with values (filling all rows)
-    for (let i = 0; i < nRows; i++) {
-      int32View.setInt32(i * 4, i % 10, true);  // Store values 0 to 9 repeatedly (example)
+  // Create buffers for each column.
+  const intBuffer = new ArrayBuffer(intColSize);
+  const floatBuffer = new ArrayBuffer(floatColSize);
+  const boolBuffer = new ArrayBuffer(boolColSize);
+  const stringBuffer = new ArrayBuffer(stringColSize);
+
+  // Create DataView instances
+  const int32View = new DataView(intBuffer);
+  const float32View = new DataView(floatBuffer);
+  const boolView = new DataView(boolBuffer);
+  const stringView = new DataView(stringBuffer);
+
+  // Populate the entire int32 column with values (filling all rows)
+  for (let i = 0; i < nRows; i++) {
+    int32View.setInt32(i * 4, i % 10, true);  // Store values 0 to 9 repeatedly (example)
+  }
+
+  // Populate the entire float32 column with values (filling all rows)
+  for (let i = 0; i < nRows; i++) {
+    float32View.setFloat32(i * 4, i * 0.01, true);  // Store floating-point values
+  }
+
+  // Populate the entire bool column with alternating true/false (1/0)
+  for (let i = 0; i < nRows; i++) {
+    boolView.setUint8(i, i % 2);  // Alternate between 1 (true) and 0 (false)
+  }
+
+  // Populate the string column with "red", "green", "blue", "purple" (filling all rows)
+  const stringValues = ['red', 'green', 'blue', 'purple'];
+  for (let i = 0; i < nRows; i++) {
+    stringView.setUint8(i, i % 4);  // Store the index for "red", "green", "blue", "purple"
+  }
+
+  // Define columns with metadata
+  const columns: Column[] = [
+    {
+      name: 'int_col',
+      dataType: 'int32',
+      buffer: intBuffer,
+      dataView: new DataView(intBuffer),
+      length: nRows  // Number of rows
+    },
+    {
+      name: 'float_col',
+      dataType: 'float32',
+      buffer: floatBuffer,
+      dataView: new DataView(floatBuffer),
+      length: nRows  // Same number of rows for float32
+    },
+    {
+      name: 'bool_col',
+      dataType: 'bool',
+      buffer: boolBuffer,
+      dataView: new DataView(boolBuffer),
+      length: nRows  // Same number of rows for bools
+    },
+    {
+      name: 'color_col',
+      dataType: 'string',
+      buffer: stringBuffer,
+      dataView: new DataView(stringBuffer),
+      length: nRows,  // Number of rows
     }
-    
-    // Populate the entire float32 column with values (filling all rows)
-    for (let i = 0; i < nRows; i++) {
-      float32View.setFloat32(i * 4, i * 0.01, true);  // Store floating-point values
-    }
-    
-    // Populate the entire bool column with alternating true/false (1/0)
-    for (let i = 0; i < nRows; i++) {
-      boolView.setUint8(i, i % 2);  // Alternate between 1 (true) and 0 (false)
-    }
-    
-    // Define columns with metadata, using 1 GB of data
-    const columns: Column[] = [
-      {
-        name: 'int_col',
-        dataType: 'int32',
-        buffer: intBuffer,
-        dataView: new DataView(intBuffer),
-        length: nRows  // Number of rows we can store with 1 GB of data
-      },
-      {
-        name: 'float_col',
-        dataType: 'float32',
-        buffer: floatBuffer,
-        dataView: new DataView(floatBuffer),
-        length: nRows  // Same here for float32
-      },
-      {
-        name: 'bool_col',
-        dataType: 'bool',
-        buffer: boolBuffer,
-        dataView: new DataView(boolBuffer),
-        length: nRows  // For bools, 1 GB stores this many values
-      }
-    ];
+  ];
     
     // Create a zero-copy DataFrame with 1 GB data buffers
     const df = new ZeroCopyDataFrame(columns);
@@ -218,13 +244,24 @@ function main() {
     }
     
     // Perform groupby on 'int_col' and sum on 'float_col'
-    const grouped = df.groupby('int_col');
+    const groupedByInt = df.groupby('int_col');
     
-    const summed = df.sum(grouped, 'float_col');
-    console.log('Sum of float_col by int_col groups:', summed);
+    const summedFloatsByInt = df.sum(groupedByInt, 'float_col');
+    console.log('Sum of float_col by int_col groups:', summedFloatsByInt);
 
     prettyPrintMemoryUsage({
         nRows
+    });
+
+    // Group by 'color_col' and sum 'float_col'
+    const groupedByColor = df.groupby('color_col');
+
+    const summedFloatsByColor = df.sum(groupedByColor, 'float_col');
+    console.log('Sum of float_col by color_col groups:', summedFloatsByColor);
+
+    prettyPrintMemoryUsage({
+        nRows,
+        df
     });
 }
 
