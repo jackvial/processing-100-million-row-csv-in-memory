@@ -37,7 +37,7 @@ class ZeroCopyDataFrame {
         return dataView.getFloat32(offset, true);
       case 'bool':
         return dataView.getUint8(offset) === 1;  // Boolean values as 0/1
-    case 'string':
+      case 'string':
         if (!column.strings) throw new Error(`String column missing string array`);
         const stringIndex = dataView.getUint8(offset);
         return column.strings[stringIndex];
@@ -147,7 +147,7 @@ function prettyPrintMemoryUsage({
 function main() {
     // Example: Creating a DataFrame
 
-    const nRows = 500_000_000;
+    const nRows = 50_000_000;
     prettyPrintMemoryUsage({
         nRows
     });
@@ -200,32 +200,33 @@ function main() {
   // Define columns with metadata
   const columns: Column[] = [
     {
-      name: 'int_col',
+      name: 'SKU',
       dataType: 'int32',
       buffer: intBuffer,
       dataView: new DataView(intBuffer),
       length: nRows  // Number of rows
     },
     {
-      name: 'float_col',
+      name: 'price',
       dataType: 'float32',
       buffer: floatBuffer,
       dataView: new DataView(floatBuffer),
       length: nRows  // Same number of rows for float32
     },
     {
-      name: 'bool_col',
+      name: 'isAvailable',
       dataType: 'bool',
       buffer: boolBuffer,
       dataView: new DataView(boolBuffer),
       length: nRows  // Same number of rows for bools
     },
     {
-      name: 'color_col',
+      name: 'color',
       dataType: 'string',
       buffer: stringBuffer,
       dataView: new DataView(stringBuffer),
       length: nRows,  // Number of rows
+      strings: stringValues  // String values for the string column
     }
   ];
     
@@ -243,21 +244,22 @@ function main() {
       console.log(df.getRow(i));
     }
     
-    // Perform groupby on 'int_col' and sum on 'float_col'
-    const groupedByInt = df.groupby('int_col');
+    console.time('Groupby SKU and Sum price');
+    const groupedByInt = df.groupby('SKU');
     
-    const summedFloatsByInt = df.sum(groupedByInt, 'float_col');
-    console.log('Sum of float_col by int_col groups:', summedFloatsByInt);
+    const summedFloatsByInt = df.sum(groupedByInt, 'price');
+    console.log('Sum of price by SKU groups:', summedFloatsByInt);
+    console.timeEnd('Groupby SKU and Sum price');
 
     prettyPrintMemoryUsage({
         nRows
     });
 
-    // Group by 'color_col' and sum 'float_col'
-    const groupedByColor = df.groupby('color_col');
+    console.time('Groupby color and Sum price');
+    const groupedByColor = df.groupby('color');
 
-    const summedFloatsByColor = df.sum(groupedByColor, 'float_col');
-    console.log('Sum of float_col by color_col groups:', summedFloatsByColor);
+    const summedFloatsByColor = df.sum(groupedByColor, 'price');
+    console.log('Sum of price by color groups:', summedFloatsByColor);
 
     prettyPrintMemoryUsage({
         nRows,
