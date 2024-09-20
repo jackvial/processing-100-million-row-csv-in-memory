@@ -1,6 +1,6 @@
 import fs from 'fs';
 import readline from 'readline';
-import { exportToCSV, populateBuffersFromRow, allocateBuffers, StringColumnDict } from './csv';
+import { exportToCSV, allocateBuffers, StringColumnDict } from './csv';
 
 export type DataType = 'int32' | 'float32' | 'bool' | 'string';
 
@@ -125,6 +125,45 @@ export function getColumnSize(dataType: DataType): number {
 
 function bytesToMB(bytes: number): string {
     return (bytes / 1024 / 1024).toFixed(4);
+}
+
+// Populate buffers for each row
+export function populateBuffersFromRow(
+    rowIndex: number,
+    rowData: any,
+    columns: Column[],
+    stringColumnDicts: { [key: string]: StringColumnDict }  // Now using the defined interface
+) {
+    columns.forEach((col) => {
+        const value = rowData[col.name];
+        const offset = rowIndex * getColumnSize(col.dataType);
+
+        switch (col.dataType) {
+            case 'int32':
+                col.dataView.setInt32(offset, parseInt(value), true);
+                break;
+            case 'float32':
+                col.dataView.setFloat32(offset, parseFloat(value), true);
+                break;
+            case 'bool':
+                col.dataView.setUint8(offset, value === 'true' ? 1 : 0);
+                break;
+            case 'string':
+                const dict = stringColumnDicts[col.name];
+                // if (isNaN(value)) {
+                //     throw new Error(`Invalid string value: ${value}`);
+                // }
+                if (!(value in dict.valueToIndex)) {
+                    dict.valueToIndex[value] = dict.strings.length;
+                    dict.strings.push(value);
+                }
+                col.dataView.setUint8(offset, dict.valueToIndex[value]);  // Store the index of the string
+                col.strings = dict.strings;  // Update the string array
+                break;
+            default:
+                throw new Error(`Unsupported data type: ${col.dataType}`);
+        }
+    });
 }
 
 function prettyPrintMemoryUsage({
@@ -282,7 +321,7 @@ function example1() {
 
 async function example2ReadDataFromCsv(): Promise<void> {
     const nRows = 10_000_000;
-    
+
     // SKU,price,isAvailable,color
 
     // Define the schema and allocate buffers
@@ -294,12 +333,12 @@ async function example2ReadDataFromCsv(): Promise<void> {
     ]);
 
     const stringColumnDicts: { [key: string]: StringColumnDict } = {
-        color_col: {
-          valueToIndex: { red: 0, green: 1, blue: 2, purple: 3 },
-          strings: ['red', 'green', 'blue', 'purple'],
+        color: {
+            valueToIndex: { red: 0, green: 1, blue: 2, purple: 3 },
+            strings: ['red', 'green', 'blue', 'purple'],
         },
-      };
-    
+    };
+
     let rowIndex = 0;
     const fileStream = fs.createReadStream("./outputs/test_10000000_rows.csv");
 
@@ -309,8 +348,16 @@ async function example2ReadDataFromCsv(): Promise<void> {
         crlfDelay: Infinity
     });
 
+    const startReadFileTime = new Date().getTime();
+
+    let isFirstLine = false;
+
     return new Promise<void>((resolve, reject) => {
         rl.on('line', (line) => {
+            if (!isFirstLine) {
+                isFirstLine = true;
+                return;
+            }
             if (rowIndex < nRows) {
                 // Split the line by comma (assuming a simple CSV format)
                 const rowData = line.split(',');
@@ -320,7 +367,8 @@ async function example2ReadDataFromCsv(): Promise<void> {
                     SKU: rowData[0],
                     price: rowData[1],
                     isAvailable: rowData[2],
-                    color: rowData[3]
+                    // color: rowData[3]
+                    color: rowData[3].replace(/"/g, '')  // Strip quotes from the color field
                 };
 
                 // Populate the buffers with the parsed row data
@@ -332,13 +380,15 @@ async function example2ReadDataFromCsv(): Promise<void> {
 
         rl.on('close', () => {
             try {
+                const endReadFileTime = new Date().getTime();
+                console.log(`Time to read file: ${endReadFileTime - startReadFileTime} ms`);
+
                 // Finalize the DataFrame after reading all rows
                 const df = finalizeDataFrame(columns);
                 prettyPrintMemoryUsage({
                     nRows,
                     df
                 });
-                df.print();  // Optionally print a few rows for verification
 
                 // Group by color and sum the price
                 console.time('Groupby color and Sum price');
