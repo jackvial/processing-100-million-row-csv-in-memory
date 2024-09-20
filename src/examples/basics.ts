@@ -3,7 +3,7 @@ import { prettyPrintMemoryUsage } from '../utils';
 import { exportToCSV } from '../csv';
 
 function main() {
-    const nRows = 10_000_000;
+    const nRows = 100_000_000;
     prettyPrintMemoryUsage({
         nRows
     });
