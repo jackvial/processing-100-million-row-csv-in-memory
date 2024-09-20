@@ -322,7 +322,9 @@ function example1() {
 async function example2ReadDataFromCsv(): Promise<void> {
     const nRows = 10_000_000;
 
-    // SKU,price,isAvailable,color
+    prettyPrintMemoryUsage({
+        nRows,
+    });
 
     // Define the schema and allocate buffers
     const columns = allocateBuffers(nRows, [
@@ -331,6 +333,10 @@ async function example2ReadDataFromCsv(): Promise<void> {
         { name: 'isAvailable', dataType: 'bool' },
         { name: 'color', dataType: 'string' }
     ]);
+
+    prettyPrintMemoryUsage({
+        nRows,
+    });
 
     const stringColumnDicts: { [key: string]: StringColumnDict } = {
         color: {
@@ -382,6 +388,10 @@ async function example2ReadDataFromCsv(): Promise<void> {
             try {
                 const endReadFileTime = new Date().getTime();
                 console.log(`Time to read file: ${endReadFileTime - startReadFileTime} ms`);
+
+                prettyPrintMemoryUsage({
+                    nRows: nRows,
+                });
 
                 // Finalize the DataFrame after reading all rows
                 const df = finalizeDataFrame(columns);
