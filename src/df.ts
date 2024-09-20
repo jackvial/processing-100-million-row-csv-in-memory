@@ -1,8 +1,10 @@
-import { exportToCSV } from './csv';
+import fs from 'fs';
+import readline from 'readline';
+import { exportToCSV, populateBuffersFromRow, allocateBuffers, StringColumnDict } from './csv';
 
 export type DataType = 'int32' | 'float32' | 'bool' | 'string';
 
-interface Column {
+export interface Column {
     name: string;
     dataType: DataType;
     buffer: ArrayBuffer;
@@ -57,18 +59,7 @@ export class ZeroCopyDataFrame {
 
     // Get size of data type in bytes
     getTypeSize(dataType: DataType): number {
-        switch (dataType) {
-            case 'int32':
-                return 4;
-            case 'float32':
-                return 4;
-            case 'bool':
-                return 1;
-            case 'string':
-                return 1;  // 1 byte to store the index of the string
-            default:
-                throw new Error(`Unsupported data type: ${dataType}`);
-        }
+        return getColumnSize(dataType);
     }
 
     // Groupby function that creates groups based on a column's values
@@ -117,6 +108,21 @@ export class ZeroCopyDataFrame {
     }
 }
 
+function finalizeDataFrame(columns: Column[]): ZeroCopyDataFrame {
+    return new ZeroCopyDataFrame(columns);
+}
+
+export function getColumnSize(dataType: DataType): number {
+    switch (dataType) {
+        case 'int32': return 4;
+        case 'float32': return 4;
+        case 'bool': return 1;
+        case 'string': return 1;  // Index for strings
+        default: throw new Error(`Unsupported data type: ${dataType}`);
+    }
+}
+
+
 function bytesToMB(bytes: number): string {
     return (bytes / 1024 / 1024).toFixed(4);
 }
@@ -146,9 +152,11 @@ function prettyPrintMemoryUsage({
 }
 
 
-function main() {
-    // Example: Creating a DataFrame
+async function main() {
+    await example2ReadDataFromCsv();
+}
 
+function example1() {
     const nRows = 10_000_000;
     prettyPrintMemoryUsage({
         nRows
@@ -271,5 +279,87 @@ function main() {
 
     exportToCSV(df, `outputs/test_${nRows}_rows.csv`);
 }
+
+async function example2ReadDataFromCsv(): Promise<void> {
+    const nRows = 10_000_000;
+    
+    // SKU,price,isAvailable,color
+
+    // Define the schema and allocate buffers
+    const columns = allocateBuffers(nRows, [
+        { name: 'SKU', dataType: 'int32' },
+        { name: 'price', dataType: 'float32' },
+        { name: 'isAvailable', dataType: 'bool' },
+        { name: 'color', dataType: 'string' }
+    ]);
+
+    const stringColumnDicts: { [key: string]: StringColumnDict } = {
+        color_col: {
+          valueToIndex: { red: 0, green: 1, blue: 2, purple: 3 },
+          strings: ['red', 'green', 'blue', 'purple'],
+        },
+      };
+    
+    let rowIndex = 0;
+    const fileStream = fs.createReadStream("./outputs/test_10000000_rows.csv");
+
+    // Use readline to read the CSV file line by line
+    const rl = readline.createInterface({
+        input: fileStream,
+        crlfDelay: Infinity
+    });
+
+    return new Promise<void>((resolve, reject) => {
+        rl.on('line', (line) => {
+            if (rowIndex < nRows) {
+                // Split the line by comma (assuming a simple CSV format)
+                const rowData = line.split(',');
+
+                // Map rowData to an object matching column names
+                const parsedRow = {
+                    SKU: rowData[0],
+                    price: rowData[1],
+                    isAvailable: rowData[2],
+                    color: rowData[3]
+                };
+
+                // Populate the buffers with the parsed row data
+                populateBuffersFromRow(rowIndex, parsedRow, columns, stringColumnDicts);
+
+                rowIndex++;
+            }
+        });
+
+        rl.on('close', () => {
+            try {
+                // Finalize the DataFrame after reading all rows
+                const df = finalizeDataFrame(columns);
+                prettyPrintMemoryUsage({
+                    nRows,
+                    df
+                });
+                df.print();  // Optionally print a few rows for verification
+
+                // Group by color and sum the price
+                console.time('Groupby color and Sum price');
+                const groupedByColor = df.groupby('color');
+                const summedFloatsByColor = df.sum(groupedByColor, 'price');
+                console.log('Sum of price by color groups:', summedFloatsByColor);
+
+                // Resolve the promise
+                resolve();
+            } catch (err) {
+                // Reject the promise if any error occurs
+                reject(err);
+            }
+        });
+
+        rl.on('error', (err) => {
+            // Handle errors in reading the file
+            reject(err);
+        });
+    });
+}
+
 
 main();
