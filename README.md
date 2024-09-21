@@ -12,9 +12,9 @@
         - How to store strings using a dictionary and index
 5. Grouping and summing the data example
 6. Drop duplicates example, need more data in memory
-6. Simple Columnar DataFrame Library
-7. ArrowJS. PolarsJS.
-8. Python Ecosystem
+7. Wouldn't it be nice if there was a library that done all of this. Introduce Simple Columnar DataFrame Library
+8. ArrowJS. PolarsJS.
+9. Python Ecosystem
 
 ## Notes
 - Use charts and graph or just run and talk about examples in VSCode?
