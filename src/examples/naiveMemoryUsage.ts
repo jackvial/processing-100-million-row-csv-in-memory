@@ -3,10 +3,12 @@ import {
 } from "../utils"
 
 function main () {
-    const nRows = 100_000_000;
+    const nRows = 10_000_000;
     prettyPrintMemoryUsage({
         nRows
     });
+
+    console.time('Create Data');
 
     const rows: any[] = [];
     for (let i = 0; i < nRows; i++) {
@@ -28,6 +30,10 @@ function main () {
     prettyPrintMemoryUsage({
         nRows
     });
+    console.log('---------------------------------');
+    console.timeEnd('Create Data');
+
+    console.time('Group Price By Color');
 
     // Group price by color and sum each group use plain for loop
     const priceByColor: { [key: string]: number } = {};
@@ -41,11 +47,14 @@ function main () {
         priceByColor[color] += price;
     }
 
-    console.log(priceByColor);
-
     prettyPrintMemoryUsage({
         nRows
     });
+
+    console.log('---------------------------------');
+    console.timeEnd('Group Price By Color');
+
+    console.log(priceByColor);
 }
 
 main();

@@ -48,7 +48,7 @@ function main () {
     });
 
     console.timeEnd('Create Buffer');
-
+    console.log('---------------------------------');
     console.time('Group Price By Color');
 
     // Group price by color and sum each group using a for loop, no object copy
@@ -72,6 +72,7 @@ function main () {
         nRows
     });
 
+    console.log('---------------------------------');
     console.timeEnd('Group Price By Color');
 }
 
