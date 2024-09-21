@@ -3,12 +3,17 @@
 1. Parsing the csv. Using CSV Parser.
     - Use WasteManifest or EchoExporter in example. Has a lot of columns
 2. Storing the data in memory. Naive memory implementation with array of objects. Memory usage grows quickly and runs out of memory
-3. Basic ArrayBuffer example
+3. Introduce Apache Arrow Columnar Data Format
+    - https://arrow.apache.org/docs/format/Columnar.html
+4. Basic ArrayBuffer example
     - Run first then talk about:
         - Available data types
         - Populating buffer, data views, zero-copy
         - How to store strings using a dictionary and index
-4. Grouping and summing the data example
-5. Simple Columnar DataFrame Library
-6. ArrowJS. PolarsJS.
-7. Python Ecosystem
+5. Grouping and summing the data example
+6. Simple Columnar DataFrame Library
+7. ArrowJS. PolarsJS.
+8. Python Ecosystem
+
+## Notes
+- Use charts and graph or just run and talk about examples in VSCode?
