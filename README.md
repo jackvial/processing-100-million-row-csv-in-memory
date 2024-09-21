@@ -1,4 +1,4 @@
-# Processing A 10 Million Row CSV In Nodejs
+# Processing 100 Million Record CSV In Nodejs
 
 1. Parsing the csv. Using CSV Parser.
     - Use WasteManifest or EchoExporter in example. Has a lot of columns
@@ -22,8 +22,17 @@
     - Fast
     - Was able to get working after fixing bugs. Opened PR here https://github.com/pola-rs/nodejs-polars/pull/275
     - Not well use or battle tested. Need to be willing to contribute to the Github
-12. PyArrow
-13. Polars Python
+12. Pandas
+    - TODO
+13. PyArrow
+    - TODO
+14. Polars Python
+    - TODO
+15. Conclusion
+    - ArrayBuffer is definitely a valid option, especially for dealing with number types
+    - Need to do a bit more work with string types
+    - Keeping my eye on Polar JS
+    - Python ecosystem is more mature, community much more active, and ChatGPT can help you a lot here
 
 ## Notes
 - Use charts and graph or just run and talk about examples in VSCode?
