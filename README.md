@@ -12,7 +12,7 @@
         - How to store strings using a dictionary and index
 5. Grouping and summing the data example
 6. Drop duplicates example, need more data in memory
-7. Wouldn't it be nice if there was a library that done all of this. Introduce Simple Columnar DataFrame Library
+7. Wouldn't it be nice if there was a library that done all of this. Introduce Simple Columnar DataFrame Library. Why not use lodash?
 8. ArrowJS. PolarsJS.
 9. Python Ecosystem
 
