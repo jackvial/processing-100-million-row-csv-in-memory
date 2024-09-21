@@ -11,6 +11,7 @@
         - Populating buffer, data views, zero-copy
         - How to store strings using a dictionary and index
 5. Grouping and summing the data example
+6. Drop duplicates example, need more data in memory
 6. Simple Columnar DataFrame Library
 7. ArrowJS. PolarsJS.
 8. Python Ecosystem

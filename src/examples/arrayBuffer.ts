@@ -51,6 +51,46 @@ function main () {
     console.log('---------------------------------');
     console.time('Group Price By Color');
 
+    // Drop duplicates my selected columns
+    const dropDuplicateCols: string[] = ['SKU', 'color'];
+    const dupeHashes = new Set<string>();
+    const dupeIndexes: number[] = [];
+    for (let i = 0; i < nRows; i++) {
+        const hash = `${skuArray[i]}_${colorArray[i]}`;
+        if (dupeHashes.has(hash)) {
+            dupeIndexes.push(i);
+        } else {
+            dupeHashes.add(hash);
+        }
+    }
+
+    console.log(`Found ${dupeIndexes.length} duplicates`);
+
+    // Remove duplicates
+    const nUniqueRows = nRows - dupeIndexes.length;
+    const uniqueBuffer = new ArrayBuffer(nUniqueRows * (4 + 4 + 1 + 1));
+    const uniqueSkuArray = new Uint32Array(uniqueBuffer, 0, nUniqueRows);
+    const uniquePriceArray = new Float32Array(uniqueBuffer, nUniqueRows * 4, nUniqueRows);
+    const uniqueIsAvailableArray = new Uint8Array(uniqueBuffer, nUniqueRows * 8, nUniqueRows);
+    const uniqueColorArray = new Uint8Array(uniqueBuffer, nUniqueRows * 9, nUniqueRows);
+
+    let uniqueRowIndex = 0;
+    for (let i = 0; i < nRows; i++) {
+        if (!dupeIndexes.includes(i)) {
+            uniqueSkuArray[uniqueRowIndex] = skuArray[i];
+            uniquePriceArray[uniqueRowIndex] = priceArray[i];
+            uniqueIsAvailableArray[uniqueRowIndex] = isAvailableArray[i];
+            uniqueColorArray[uniqueRowIndex] = colorArray[i];
+            uniqueRowIndex++;
+        }
+    }
+
+    console.log(`Unique rows: ${nUniqueRows}`);
+
+    prettyPrintMemoryUsage({
+        nRows: nUniqueRows
+    });
+
     // Group price by color and sum each group using a for loop, no object copy
     const priceByColor: { [key: string]: number } = {
         red: 0,
