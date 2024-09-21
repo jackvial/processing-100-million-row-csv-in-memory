@@ -1,8 +1,10 @@
+import fs from 'fs';
+import csvParser from 'csv-parser';
 import {
     prettyPrintMemoryUsage,
 } from "../utils"
 
-function main () {
+export async function main() {
     const nRows = 100_000_000;
     prettyPrintMemoryUsage({
         nRows
@@ -16,6 +18,13 @@ function main () {
         3: 'purple'
     };
 
+    const reverseColorMap: { [key: string]: number } = {
+        red: 0,
+        green: 1,
+        blue: 2,
+        purple: 3
+    };
+
     console.time('Create Buffer');
 
     // Create a single ArrayBuffer large enough to hold all data
@@ -27,69 +36,33 @@ function main () {
     const isAvailableArray = new Uint8Array(buffer, nRows * 8, nRows);  // 1 byte per entry
     const colorArray = new Uint8Array(buffer, nRows * 9, nRows);  // 1 byte per entry (store color as a number)
 
-    // Populate data
-    for (let i = 0; i < nRows; i++) {
-        skuArray[i] = i % 10;                 // SKU is an integer
-        priceArray[i] = i * 0.01;             // Price is a float
-        isAvailableArray[i] = i % 2;          // Boolean stored as 1 or 0
-        colorArray[i] = i % 4;                // Store color index (0-3)
+    const filePath = 'outputs/test_10000000_rows.csv';
+    const readStream = fs.createReadStream(filePath);
+    let rowIndex = 0;
 
-        // Print memory usage every 1 million rows
-        if (i % 1_000_000 === 0) {
-            prettyPrintMemoryUsage({
-                nRows: i
-            });
-        }
-    }
+    await new Promise<void>((resolve, reject) => {
+        readStream.pipe(csvParser()).on('data', (row: any) => {
+            skuArray[rowIndex] = parseInt(row.sku);
+            priceArray[rowIndex] = parseFloat(row.price);
+            isAvailableArray[rowIndex] = row.isAvailable === 'true' ? 1 : 0;
+            colorArray[rowIndex] = reverseColorMap[row.color];
+            rowIndex++;
+        })
+        .on('end', () => { 
+            resolve();
+        })
+        .on('error', (error) => {
+            reject(error);
+        });
+    });
 
-    
+
     prettyPrintMemoryUsage({
         nRows
     });
 
-    console.timeEnd('Create Buffer');
     console.log('---------------------------------');
     console.time('Group Price By Color');
-
-    // Drop duplicates my selected columns
-    const dropDuplicateCols: string[] = ['SKU', 'color'];
-    const dupeHashes = new Set<string>();
-    const dupeIndexes: number[] = [];
-    for (let i = 0; i < nRows; i++) {
-        const hash = `${skuArray[i]}_${colorArray[i]}`;
-        if (dupeHashes.has(hash)) {
-            dupeIndexes.push(i);
-        } else {
-            dupeHashes.add(hash);
-        }
-    }
-
-    console.log(`Found ${dupeIndexes.length} duplicates`);
-
-    // Remove duplicates
-    const nUniqueRows = nRows - dupeIndexes.length;
-    const uniqueBuffer = new ArrayBuffer(nUniqueRows * (4 + 4 + 1 + 1));
-    const uniqueSkuArray = new Uint32Array(uniqueBuffer, 0, nUniqueRows);
-    const uniquePriceArray = new Float32Array(uniqueBuffer, nUniqueRows * 4, nUniqueRows);
-    const uniqueIsAvailableArray = new Uint8Array(uniqueBuffer, nUniqueRows * 8, nUniqueRows);
-    const uniqueColorArray = new Uint8Array(uniqueBuffer, nUniqueRows * 9, nUniqueRows);
-
-    let uniqueRowIndex = 0;
-    for (let i = 0; i < nRows; i++) {
-        if (!dupeIndexes.includes(i)) {
-            uniqueSkuArray[uniqueRowIndex] = skuArray[i];
-            uniquePriceArray[uniqueRowIndex] = priceArray[i];
-            uniqueIsAvailableArray[uniqueRowIndex] = isAvailableArray[i];
-            uniqueColorArray[uniqueRowIndex] = colorArray[i];
-            uniqueRowIndex++;
-        }
-    }
-
-    console.log(`Unique rows: ${nUniqueRows}`);
-
-    prettyPrintMemoryUsage({
-        nRows: nUniqueRows
-    });
 
     // Group price by color and sum each group using a for loop, no object copy
     const priceByColor: { [key: string]: number } = {
@@ -106,14 +79,14 @@ function main () {
         priceByColor[color] += price;
     }
 
-    console.log(priceByColor);
-
     prettyPrintMemoryUsage({
         nRows
     });
 
     console.log('---------------------------------');
     console.timeEnd('Group Price By Color');
+
+    console.log(priceByColor);
 }
 
 main();

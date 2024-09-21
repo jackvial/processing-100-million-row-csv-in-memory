@@ -1,41 +1,39 @@
 import {
     prettyPrintMemoryUsage,
 } from "../utils"
+import csvParser from 'csv-parser';
+import fs from 'fs';
 
-function main () {
+export async function main() {
     const nRows = 10_000_000;
-    prettyPrintMemoryUsage({
-        nRows
-    });
+    prettyPrintMemoryUsage({ nRows });
 
     console.time('Create Data');
-
     const rows: any[] = [];
-    for (let i = 0; i < nRows; i++) {
-        rows.push({
-            SKU: i % 10,
-            price: i * 0.01,
-            isAvailable: i % 2 === 1,
-            color: ['red', 'green', 'blue', 'purple'][i % 4]
-        });
+    const filePath = 'outputs/test_100000000_rows.csv';
+    const readStream = fs.createReadStream(filePath);
 
-        // Print memory usage every 1 million rows
-        if (i % 1_000_000 === 0) {
+    let rowIndex = 0;
+    await new Promise<void>((resolve, reject) => readStream.pipe(csvParser()).on('data', (row: any) => {
+        rows.push(row);
+
+        if (rowIndex % 1_000_000 === 0) {
             prettyPrintMemoryUsage({
-                nRows: i
+                nRows: rowIndex,
             });
         }
-    }
 
-    prettyPrintMemoryUsage({
-        nRows
-    });
+        rowIndex++;
+    }).on('end', () => {
+        resolve();
+    }).on('error', (error) => {
+        reject(error);
+    }));
+
+    prettyPrintMemoryUsage({ nRows });
     console.log('---------------------------------');
     console.timeEnd('Create Data');
-
     console.time('Group Price By Color');
-
-    // Group price by color and sum each group use plain for loop
     const priceByColor: { [key: string]: number } = {};
     for (let i = 0; i < nRows; i++) {
         const row = rows[i];
@@ -47,13 +45,10 @@ function main () {
         priceByColor[color] += price;
     }
 
-    prettyPrintMemoryUsage({
-        nRows
-    });
+    prettyPrintMemoryUsage({ nRows });
 
     console.log('---------------------------------');
     console.timeEnd('Group Price By Color');
-
     console.log(priceByColor);
 }
 

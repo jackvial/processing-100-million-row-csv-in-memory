@@ -11,24 +11,14 @@ async function main(): Promise<void> {
         nRows,
     });
 
-    // Define the schema and allocate buffers
-    const columns = allocateBuffers(nRows, [
-        { name: 'SKU', dataType: 'int32' },
-        { name: 'price', dataType: 'float32' },
-        { name: 'isAvailable', dataType: 'bool' },
-        { name: 'color', dataType: 'string' }
-    ]);
+    const colorArray: string[] = [];
+    const priceArray: number[] = [];
+    const skuArray: number[] = [];
+    const isAvailableArray: boolean[] = [];
 
     prettyPrintMemoryUsage({
         nRows,
     });
-
-    const stringColumnDicts: { [key: string]: StringColumnDict } = {
-        color: {
-            valueToIndex: { red: 0, green: 1, blue: 2, purple: 3 },
-            strings: ['red', 'green', 'blue', 'purple'],
-        },
-    };
 
     let rowIndex = 0;
     const fileStream = fs.createReadStream("./outputs/test_10000000_rows.csv");
@@ -53,17 +43,10 @@ async function main(): Promise<void> {
                 // Split the line by comma (assuming a simple CSV format)
                 const rowData = line.split(',');
 
-                // Map rowData to an object matching column names
-                const parsedRow = {
-                    SKU: rowData[0],
-                    price: rowData[1],
-                    isAvailable: rowData[2],
-                    // color: rowData[3]
-                    color: rowData[3].replace(/"/g, '')  // Strip quotes from the color field
-                };
-
-                // Populate the buffers with the parsed row data
-                populateBuffersFromRow(rowIndex, parsedRow, columns, stringColumnDicts);
+                skuArray.push(parseInt(rowData[0]));
+                priceArray.push(parseFloat(rowData[1]));
+                isAvailableArray.push(rowData[2] === 'true');
+                colorArray.push(rowData[3].replace(/"/g, ''));
 
                 if (rowIndex % 1_000_000 === 0) {
                     prettyPrintMemoryUsage({
@@ -85,17 +68,17 @@ async function main(): Promise<void> {
                 });
 
                 // Finalize the DataFrame after reading all rows
-                const df = finalizeDataFrame(columns);
-                prettyPrintMemoryUsage({
-                    nRows,
-                    df
-                });
+                // const df = finalizeDataFrame(columns);
+                // prettyPrintMemoryUsage({
+                //     nRows,
+                //     df
+                // });
 
-                // Group by color and sum the price
-                console.time('Groupby color and Sum price');
-                const groupedByColor = df.groupby('color');
-                const summedFloatsByColor = df.sum(groupedByColor, 'price');
-                console.log('Sum of price by color groups:', summedFloatsByColor);
+                // // Group by color and sum the price
+                // console.time('Groupby color and Sum price');
+                // const groupedByColor = df.groupby('color');
+                // const summedFloatsByColor = df.sum(groupedByColor, 'price');
+                // console.log('Sum of price by color groups:', summedFloatsByColor);
 
                 // Resolve the promise
                 resolve();
