@@ -15,8 +15,15 @@
 8. Wouldn't it be nice if there was a library that done all of this. Introduce Simple Columnar DataFrame Library. Why not use lodash?
 9. Introduce Apache Arrow Columnar Data Format
     - https://arrow.apache.org/docs/format/Columnar.html
-10. ArrowJS. PolarsJS.
-11. Python Ecosystem
+10. Apache Arrow JS
+    - Very bare bones. Only provides the Apache Arrow primitives
+    - Can't use because of bugs and JS/TS project is not well maintained. Reported bug here https://github.com/apache/arrow/issues/44180
+11. Polars JS
+    - Fast
+    - Was able to get working after fixing bugs. Opened PR here https://github.com/pola-rs/nodejs-polars/pull/275
+    - Not well use or battle tested. Need to be willing to contribute to the Github
+12. PyArrow
+13. Polars Python
 
 ## Notes
 - Use charts and graph or just run and talk about examples in VSCode?

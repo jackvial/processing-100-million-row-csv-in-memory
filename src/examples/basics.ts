@@ -27,19 +27,18 @@ function main() {
     const stringBuffer = new ArrayBuffer(stringColSize);
 
     // Create DataView instances
-    const int32View = new DataView(intBuffer);
+    const int8View = new DataView(intBuffer);
     const float32View = new DataView(floatBuffer);
     const boolView = new DataView(boolBuffer);
     const stringView = new DataView(stringBuffer);
 
     // Populate the entire int32 column with values (filling all rows)
     for (let i = 0; i < nRows; i++) {
-        int32View.setInt32(i * 4, i % 10, true);  // Store values 0 to 9 repeatedly (example)
+        int8View.setInt32(i * 4, i % 10, true);  // Store values 0 to 9 repeatedly (example)
     }
 
-    // Populate the entire float32 column with values (filling all rows)
     for (let i = 0; i < nRows; i++) {
-        float32View.setFloat32(i * 4, i * 0.01, true);  // Store floating-point values
+        float32View.setFloat32(i * 4, Math.random() * 100, true);
     }
 
     // Populate the entire bool column with alternating true/false (1/0)
