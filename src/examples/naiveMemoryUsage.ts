@@ -3,7 +3,7 @@ import {
 } from "../utils"
 
 function main () {
-    const nRows = 10_000_000;
+    const nRows = 100_000_000;
     prettyPrintMemoryUsage({
         nRows
     });
@@ -16,6 +16,13 @@ function main () {
             isAvailable: i % 2 === 1,
             color: ['red', 'green', 'blue', 'purple'][i % 4]
         });
+
+        // Print memory usage every 1 million rows
+        if (i % 1_000_000 === 0) {
+            prettyPrintMemoryUsage({
+                nRows: i
+            });
+        }
     }
 
     prettyPrintMemoryUsage({

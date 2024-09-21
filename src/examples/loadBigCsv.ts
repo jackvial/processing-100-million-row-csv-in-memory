@@ -5,7 +5,7 @@ import {StringColumnDict} from '../types';
 import {finalizeDataFrame} from '../utils';
 
 async function main(): Promise<void> {
-    const nRows = 10_000_000;
+    const nRows = 100_000_000;
 
     prettyPrintMemoryUsage({
         nRows,
@@ -31,7 +31,7 @@ async function main(): Promise<void> {
     };
 
     let rowIndex = 0;
-    const fileStream = fs.createReadStream("./outputs/test_10000000_rows.csv");
+    const fileStream = fs.createReadStream("./outputs/test_100000000_rows.csv");
 
     // Use readline to read the CSV file line by line
     const rl = readline.createInterface({
@@ -64,6 +64,12 @@ async function main(): Promise<void> {
 
                 // Populate the buffers with the parsed row data
                 populateBuffersFromRow(rowIndex, parsedRow, columns, stringColumnDicts);
+
+                if (rowIndex % 1_000_000 === 0) {
+                    prettyPrintMemoryUsage({
+                        nRows: rowIndex,
+                    });
+                }
 
                 rowIndex++;
             }
