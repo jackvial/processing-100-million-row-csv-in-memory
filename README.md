@@ -8,6 +8,7 @@
         - Available data types
         - Populating buffer, data views, zero-copy
         - How to store strings using a dictionary and index
+        - Handling null values
 5. Why is ArrayBuffer so much more memory efficient than Array of objects?
 6. Grouping and summing the data example
 7. Drop duplicates example, need more data in memory
