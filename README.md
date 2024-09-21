@@ -11,11 +11,11 @@
         - Populating buffer, data views, zero-copy
         - How to store strings using a dictionary and index
 6. Why is ArrayBuffer so much more memory efficient than Array of objects?
-5. Grouping and summing the data example
-6. Drop duplicates example, need more data in memory
-7. Wouldn't it be nice if there was a library that done all of this. Introduce Simple Columnar DataFrame Library. Why not use lodash?
-8. ArrowJS. PolarsJS.
-9. Python Ecosystem
+7. Grouping and summing the data example
+8. Drop duplicates example, need more data in memory
+9. Wouldn't it be nice if there was a library that done all of this. Introduce Simple Columnar DataFrame Library. Why not use lodash?
+10. ArrowJS. PolarsJS.
+11. Python Ecosystem
 
 ## Notes
 - Use charts and graph or just run and talk about examples in VSCode?
