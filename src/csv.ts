@@ -15,6 +15,8 @@ export function exportToCSV(df: ZeroCopyDataFrame, outputFilePath: string, batch
     let rowsProcessed = 0;
 
     // Function to process and write a batch of rows
+    // Writing in batches like this will prevent running out of memory
+    // because memory will be freed when this function returns
     function writeBatch(startIndex: number, batchSize: number) {
         let buffer = '';
 
