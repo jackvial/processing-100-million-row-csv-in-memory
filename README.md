@@ -1,7 +1,7 @@
 # Processing 100 Million Record CSV In Nodejs
 
 Assume we need the whole file in memory to perform multiple operations like:
-- Sorting
+- Sorting (sort by timestamp , shuffle chemicals shipped dataset)
 - Join multiple files together (like SQL inner join)
 - Complex Grouping or Aggregation Across Multiple Columns
 - Deduplication
