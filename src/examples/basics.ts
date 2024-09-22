@@ -1,12 +1,10 @@
 import { Column, ZeroCopyDataFrame } from '../df';
-import { prettyPrintMemoryUsage } from '../utils';
+import { getMemoryStats } from '../utils';
 import { exportToCSV } from '../csv';
 
 function main() {
     const nRows = 100_000_000;
-    prettyPrintMemoryUsage({
-        nRows
-    });
+    getMemoryStats(nRows);
 
     // Calculate buffer size for each column based on row count
     const intColSize = nRows * 4;  // 4 bytes per int32 value
@@ -89,9 +87,7 @@ function main() {
     const df = new ZeroCopyDataFrame(columns);
 
     // Log system and DataFrame memory usage (optional)
-    prettyPrintMemoryUsage({
-        nRows,
-    });
+    getMemoryStats(nRows);
 
     // Access and print a few rows (avoid printing all rows since 1 GB has too many rows)
     console.log("First 5 rows:");
@@ -106,9 +102,7 @@ function main() {
     console.log('Sum of price by SKU groups:', summedFloatsByInt);
     console.timeEnd('Groupby SKU and Sum price');
 
-    prettyPrintMemoryUsage({
-        nRows
-    });
+    getMemoryStats(nRows);
 
     console.time('Groupby color and Sum price');
     const groupedByColor = df.groupby('color');
@@ -117,10 +111,7 @@ function main() {
     console.log('Sum of price by color groups:', summedFloatsByColor);
     console.timeEnd('Groupby color and Sum price');
 
-    prettyPrintMemoryUsage({
-        nRows,
-        df
-    });
+    getMemoryStats(nRows, df);
 
     exportToCSV(df, `outputs/test_${nRows}_rows.csv`);
 }

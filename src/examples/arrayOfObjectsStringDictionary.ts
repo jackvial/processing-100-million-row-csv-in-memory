@@ -1,12 +1,15 @@
 import {
-    prettyPrintMemoryUsage,
+    getMemoryStats,
+    MemoryStatsRow,
+    writeStatsToCsv
 } from "../utils"
 import csvParser from 'csv-parser';
 import fs from 'fs';
 
 export async function main() {
-    const nRows = 100_000_000;
-    prettyPrintMemoryUsage({ nRows });
+    const startTime = Date.now();
+    const memoryStats: MemoryStatsRow[] = [];
+    const nRows = 10_000_000;
 
     // Color map to store smaller integers instead of full color names
     const colorMap = {
@@ -24,24 +27,20 @@ export async function main() {
         'purple': 3
     };
 
-    console.time('Create Data');
     const rows: any[] = [];
-    const filePath = 'outputs/test_100000000_rows.csv';
+    const filePath = 'outputs/test_10000000_rows.csv';
     const readStream = fs.createReadStream(filePath);
 
     let rowIndex = 0;
     await new Promise<void>((resolve, reject) => readStream.pipe(csvParser()).on('data', (row: any) => {
-        // Convert color to an integer index and store it
         const colorIndex = colorStringToIndex[row.color];
         rows.push({
             price: parseFloat(row.price),
-            colorIndex // Store the index instead of the color name
+            colorIndex
         });
 
         if (rowIndex % 1_000_000 === 0) {
-            prettyPrintMemoryUsage({
-                nRows: rowIndex,
-            });
+            memoryStats.push(getMemoryStats(rowIndex));
         }
 
         rowIndex++;
@@ -51,40 +50,11 @@ export async function main() {
         reject(error);
     }));
 
-    prettyPrintMemoryUsage({ nRows });
-    console.log('---------------------------------');
-    console.timeEnd('Create Data');
-
-    console.time('Group Price By Color');
-    const priceByColorIndex: { [key: number]: number } = {};
-
-    // Group by color index and sum prices
-    for (let i = 0; i < nRows; i++) {
-        const row = rows[i];
-        const price = row.price;
-        const colorIndex = row.colorIndex;
-
-        if (!priceByColorIndex[colorIndex]) {
-            priceByColorIndex[colorIndex] = 0;
-        }
-        priceByColorIndex[colorIndex] += price;
-    }
-
-    prettyPrintMemoryUsage({ nRows });
-
-    console.log('---------------------------------');
-    console.timeEnd('Group Price By Color');
-
-    // Convert color index back to actual color for display using a for loop
-    const priceByColor: { [key: string]: number } = {};
-    for (const colorIndex in priceByColorIndex) {
-        if (priceByColorIndex.hasOwnProperty(colorIndex)) {
-            const colorName = colorMap[parseInt(colorIndex)];
-            priceByColor[colorName] = priceByColorIndex[colorIndex];
-        }
-    }
-
-    console.log(priceByColor);
+    memoryStats.push(getMemoryStats(nRows));
+    writeStatsToCsv({
+        memoryStats,
+        duration: Date.now() - startTime
+    }, `stats/arrayOfObjectsStringDictionary_${rows.length}.csv`);
 }
 
 main();

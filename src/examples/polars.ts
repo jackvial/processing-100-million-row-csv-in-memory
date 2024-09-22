@@ -1,30 +1,31 @@
 import pl from 'nodejs-polars';
+import fs from 'fs';
 import {
-    prettyPrintMemoryUsage
+    getMemoryStats,
+    MemoryStatsRow,
+    writeStatsToCsv
 } from '../utils';
 
 async function main() {
-    const nRows = 100_000_000;
-    const df = pl.readCSV('outputs/test_100000000_rows.csv');
+    const startTime = Date.now();
+    const memoryStats: MemoryStatsRow[] = [];
+    const nRows = 10_000_000;
 
-    prettyPrintMemoryUsage({
-        nRows
-    });
-
-    // Print head of the DataFrame
+    memoryStats.push(getMemoryStats(0));
+    const df = pl.readCSV('outputs/test_10000000_rows.csv');
+    memoryStats.push(getMemoryStats(nRows));
     console.log(df.head());
-
-    prettyPrintMemoryUsage({
-        nRows
-    });
-
-    // Group by color and sum price
+    
+    // Group by 'color' and sum 'price'
     const out = df.groupBy('color').agg({
         price: ['sum']
     });
 
-    // Print out the result
-    console.log(out);
+    // Write memory statistics to a CSV file
+    writeStatsToCsv({
+        memoryStats,
+        duration: Date.now() - startTime
+    }, `stats/polars_${nRows}.csv`);
 }
 
 main();

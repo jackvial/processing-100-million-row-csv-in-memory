@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { ZeroCopyDataFrame, DataType } from './df';
 import {
-    prettyPrintMemoryUsage
+    getMemoryStats
 } from "./utils";
 
 // Function to export DataFrame to CSV in a memory-efficient way
@@ -22,10 +22,7 @@ export function exportToCSV(df: ZeroCopyDataFrame, outputFilePath: string, batch
 
         for (let i = startIndex; i < Math.min(startIndex + batchSize, df.columns[0].length); i++) {
             if (i % 1000000 === 0) {
-                prettyPrintMemoryUsage({
-                    nRows: i,
-                    df
-                });
+                getMemoryStats(i, df);
             }
 
             const row = df.getRow(i);

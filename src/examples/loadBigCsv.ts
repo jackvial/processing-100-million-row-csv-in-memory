@@ -1,15 +1,13 @@
 import fs from 'fs';
 import readline from 'readline';
-import { prettyPrintMemoryUsage, allocateBuffers, populateBuffersFromRow } from '../utils';
+import { getMemoryStats, allocateBuffers, populateBuffersFromRow } from '../utils';
 import {StringColumnDict} from '../types';
 import {finalizeDataFrame} from '../utils';
 
 async function main(): Promise<void> {
     const nRows = 10_000_000;
 
-    prettyPrintMemoryUsage({
-        nRows,
-    });
+    getMemoryStats(nRows);
 
     // Define the schema and allocate buffers
     const columns = allocateBuffers(nRows, [
@@ -19,9 +17,7 @@ async function main(): Promise<void> {
         { name: 'color', dataType: 'string' }
     ]);
 
-    prettyPrintMemoryUsage({
-        nRows,
-    });
+    getMemoryStats(nRows);
 
     const stringColumnDicts: { [key: string]: StringColumnDict } = {
         color: {
@@ -66,9 +62,7 @@ async function main(): Promise<void> {
                 populateBuffersFromRow(rowIndex, parsedRow, columns, stringColumnDicts);
 
                 if (rowIndex % 1_000_000 === 0) {
-                    prettyPrintMemoryUsage({
-                        nRows: rowIndex,
-                    });
+                    getMemoryStats(rowIndex);
                 }
 
                 rowIndex++;
@@ -80,16 +74,11 @@ async function main(): Promise<void> {
                 const endReadFileTime = new Date().getTime();
                 console.log(`Time to read file: ${endReadFileTime - startReadFileTime} ms`);
 
-                prettyPrintMemoryUsage({
-                    nRows: nRows,
-                });
+                getMemoryStats(nRows);
 
                 // Finalize the DataFrame after reading all rows
                 const df = finalizeDataFrame(columns);
-                prettyPrintMemoryUsage({
-                    nRows,
-                    df
-                });
+                getMemoryStats(nRows, df);
 
                 // Group by color and sum the price
                 console.time('Groupby color and Sum price');

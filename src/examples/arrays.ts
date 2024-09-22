@@ -1,24 +1,20 @@
 import fs from 'fs';
 import csvParser from 'csv-parser';
-import { prettyPrintMemoryUsage } from '../utils';
+import { getMemoryStats } from '../utils';
 import { StringColumnDict } from '../types';
 import { finalizeDataFrame } from '../utils';
 
 async function main(): Promise<void> {
     const nRows = 10_000_000;
 
-    prettyPrintMemoryUsage({
-        nRows,
-    });
+    getMemoryStats(nRows);
 
     const colorArray: string[] = [];
     const priceArray: number[] = [];
     const skuArray: number[] = [];
     const isAvailableArray: boolean[] = [];
 
-    prettyPrintMemoryUsage({
-        nRows,
-    });
+    getMemoryStats(nRows);
 
     let rowIndex = 0;
     const filePath = './outputs/test_10000000_rows.csv';
@@ -39,9 +35,7 @@ async function main(): Promise<void> {
 
                     // Log memory usage every 1,000,000 rows
                     if (rowIndex % 1_000_000 === 0) {
-                        prettyPrintMemoryUsage({
-                            nRows: rowIndex,
-                        });
+                        getMemoryStats(rowIndex);
                     }
 
                     rowIndex++;
@@ -52,13 +46,11 @@ async function main(): Promise<void> {
                     const endReadFileTime = new Date().getTime();
                     console.log(`Time to read file: ${endReadFileTime - startReadFileTime} ms`);
 
-                    prettyPrintMemoryUsage({
-                        nRows: nRows,
-                    });
+                    getMemoryStats(nRows);
 
                     // Finalize the DataFrame after reading all rows
                     // const df = finalizeDataFrame({ skuArray, priceArray, isAvailableArray, colorArray });
-                    // prettyPrintMemoryUsage({
+                    // getMemoryStats({
                     //     nRows,
                     //     df
                     // });

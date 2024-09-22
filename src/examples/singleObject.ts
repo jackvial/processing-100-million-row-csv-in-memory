@@ -1,12 +1,12 @@
 import {
-    prettyPrintMemoryUsage,
+    getMemoryStats,
 } from "../utils"
 import csvParser from 'csv-parser';
 import fs from 'fs';
 
 export async function main() {
     const nRows = 10_000_000;
-    prettyPrintMemoryUsage({ nRows });
+    getMemoryStats(nRows);
 
     console.time('Process CSV and Group Price By Color');
     const priceByColor: { [key: string]: number } = {};
@@ -26,9 +26,7 @@ export async function main() {
                 priceByColor[color] += price;
 
                 if (rowIndex % 1_000_000 === 0) {
-                    prettyPrintMemoryUsage({
-                        nRows: rowIndex,
-                    });
+                    getMemoryStats(rowIndex);
                 }
 
                 rowIndex++;
@@ -41,7 +39,7 @@ export async function main() {
             });
     });
 
-    prettyPrintMemoryUsage({ nRows });
+    getMemoryStats(nRows);
     console.log('---------------------------------');
     console.timeEnd('Process CSV and Group Price By Color');
     console.log(priceByColor);

@@ -1,14 +1,16 @@
 import fs from 'fs';
 import csvParser from 'csv-parser';
 import {
-    prettyPrintMemoryUsage,
+    getMemoryStats,
+    MemoryStatsRow,
+    writeStatsToCsv
 } from "../utils"
 
 export async function main() {
-    const nRows = 100_000_000;
-    prettyPrintMemoryUsage({
-        nRows
-    });
+    const startTime = Date.now();
+    const memoryStats: MemoryStatsRow[] = [];
+    const nRows = 10_000_000;
+    memoryStats.push(getMemoryStats(0));
 
     // Define constants for colors
     const colorMap = {
@@ -47,6 +49,10 @@ export async function main() {
             isAvailableArray[rowIndex] = row.isAvailable === 'true' ? 1 : 0;
             colorArray[rowIndex] = reverseColorMap[row.color];
             rowIndex++;
+
+            if (rowIndex % 1_000_000 === 0) {
+                memoryStats.push(getMemoryStats(rowIndex));
+            }
         })
         .on('end', () => { 
             resolve();
@@ -57,36 +63,11 @@ export async function main() {
     });
 
 
-    prettyPrintMemoryUsage({
-        nRows
-    });
-
-    console.log('---------------------------------');
-    console.time('Group Price By Color');
-
-    // Group price by color and sum each group using a for loop, no object copy
-    const priceByColor: { [key: string]: number } = {
-        red: 0,
-        green: 0,
-        blue: 0,
-        purple: 0
-    };
-
-    for (let i = 0; i < nRows; i++) {
-        const price = priceArray[i];
-        const colorIndex = colorArray[i];
-        const color = colorMap[colorIndex];
-        priceByColor[color] += price;
-    }
-
-    prettyPrintMemoryUsage({
-        nRows
-    });
-
-    console.log('---------------------------------');
-    console.timeEnd('Group Price By Color');
-
-    console.log(priceByColor);
+    memoryStats.push(getMemoryStats(nRows));
+    writeStatsToCsv({
+        memoryStats,
+        duration: Date.now() - startTime
+    }, `stats/arrayBuffer_${nRows}.csv`);
 }
 
 main();

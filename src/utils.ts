@@ -1,13 +1,21 @@
 import { ZeroCopyDataFrame, Column, DataType } from './df';
 import { StringColumnDict } from './types';
+import fs from 'fs';
 
-export function prettyPrintMemoryUsage({
-    nRows,
-    df
-}: {
-    nRows?: number,
+export type MemoryStatsRow = {
+    rows: number,
+    rss: number,
+    heapTotal: number,
+    heapUsed: number,
+    external: number,
+    arrayBuffers: number,
+    timestamp: number,
+};
+
+export function getMemoryStats(
+    nRows: number,
     df?: ZeroCopyDataFrame
-}) {
+): MemoryStatsRow {
     console.log('----------------------------------------');
     console.log(`Memory Usage with ${nRows} rows:`);
     const memoryUsage = process.memoryUsage();
@@ -23,6 +31,16 @@ export function prettyPrintMemoryUsage({
         const totalAllocatedMemory = df.columns.reduce((sum, column) => sum + column.buffer.byteLength, 0);
         console.log(`DataFrame Memory Allocation: ${bytesToMB(totalAllocatedMemory)} MB`);
     }
+
+    return {
+        rows: nRows,
+        rss: memoryUsage.rss,
+        heapTotal: memoryUsage.heapTotal,
+        heapUsed: memoryUsage.heapUsed,
+        external: memoryUsage.external,
+        arrayBuffers: memoryUsage.arrayBuffers,
+        timestamp: Date.now(),
+    };
 }
 
 export function bytesToMB(bytes: number): string {
@@ -101,4 +119,40 @@ export function populateBuffersFromRow(
                 throw new Error(`Unsupported data type: ${col.dataType}`);
         }
     });
+}
+
+// Helper function to convert an array of MemoryStatsRow to CSV format
+function memoryStatsToCSV(memoryStatsArray: MemoryStatsRow[]): string {
+    // CSV header
+    const header = 'rows,rss,heapTotal,heapUsed,external,arrayBuffers,timestamp\n';
+
+    // Map each row to a CSV string
+    const rows = memoryStatsArray.map(stat => {
+        return `${stat.rows},${stat.rss},${stat.heapTotal},${stat.heapUsed},${stat.external},${stat.arrayBuffers},${stat.timestamp}`;
+    });
+
+    // Combine header and rows
+    return header + rows.join('\n');
+}
+
+// Function to write memory stats array to CSV file
+export function writeStatsToCsv(
+    {
+        memoryStats,
+        duration
+    }: {
+        memoryStats: MemoryStatsRow[],
+        duration: number
+    },
+    filePath: string,
+): void {
+    // Convert memory stats array to CSV
+    const csvData = memoryStatsToCSV(memoryStats);
+
+    // Write the CSV data to the specified file
+    fs.writeFileSync(filePath, csvData, 'utf8');
+    console.log(`Memory stats written to ${filePath}`);
+
+    // Write the duration to a separate file
+    fs.writeFileSync(filePath.replace('.csv', '_duration.txt'), duration.toString(), 'utf8');
 }
