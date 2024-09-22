@@ -10,7 +10,7 @@ export async function main() {
 
     console.time('Create Data');
     const rows: any[] = [];
-    const filePath = 'outputs/test_100000000_rows.csv';
+    const filePath = 'outputs/test_10000000_rows.csv';
     const readStream = fs.createReadStream(filePath);
 
     let rowIndex = 0;
@@ -37,7 +37,7 @@ export async function main() {
     const priceByColor: { [key: string]: number } = {};
     for (let i = 0; i < nRows; i++) {
         const row = rows[i];
-        const price = row.price;
+        const price = parseFloat(row.price);
         const color = row.color;
         if (!priceByColor[color]) {
             priceByColor[color] = 0;

@@ -1,8 +1,8 @@
 import fs from 'fs';
-import readline from 'readline';
-import { prettyPrintMemoryUsage, allocateBuffers, populateBuffersFromRow } from '../utils';
-import {StringColumnDict} from '../types';
-import {finalizeDataFrame} from '../utils';
+import csvParser from 'csv-parser';
+import { prettyPrintMemoryUsage } from '../utils';
+import { StringColumnDict } from '../types';
+import { finalizeDataFrame } from '../utils';
 
 async function main(): Promise<void> {
     const nRows = 10_000_000;
@@ -21,77 +21,63 @@ async function main(): Promise<void> {
     });
 
     let rowIndex = 0;
-    const fileStream = fs.createReadStream("./outputs/test_10000000_rows.csv");
-
-    // Use readline to read the CSV file line by line
-    const rl = readline.createInterface({
-        input: fileStream,
-        crlfDelay: Infinity
-    });
-
+    const filePath = './outputs/test_10000000_rows.csv';
     const startReadFileTime = new Date().getTime();
 
-    let isFirstLine = false;
-
+    const readStream = fs.createReadStream(filePath);
+    
     return new Promise<void>((resolve, reject) => {
-        rl.on('line', (line) => {
-            if (!isFirstLine) {
-                isFirstLine = true;
-                return;
-            }
-            if (rowIndex < nRows) {
-                // Split the line by comma (assuming a simple CSV format)
-                const rowData = line.split(',');
+        readStream
+            .pipe(csvParser())
+            .on('data', (row: any) => {
+                if (rowIndex < nRows) {
+                    // Parse the row data and push it into the respective arrays
+                    skuArray.push(parseInt(row.sku));
+                    priceArray.push(parseFloat(row.price));
+                    isAvailableArray.push(row.isAvailable === 'true');
+                    colorArray.push(row.color.replace(/"/g, ''));
 
-                skuArray.push(parseInt(rowData[0]));
-                priceArray.push(parseFloat(rowData[1]));
-                isAvailableArray.push(rowData[2] === 'true');
-                colorArray.push(rowData[3].replace(/"/g, ''));
+                    // Log memory usage every 1,000,000 rows
+                    if (rowIndex % 1_000_000 === 0) {
+                        prettyPrintMemoryUsage({
+                            nRows: rowIndex,
+                        });
+                    }
 
-                if (rowIndex % 1_000_000 === 0) {
-                    prettyPrintMemoryUsage({
-                        nRows: rowIndex,
-                    });
+                    rowIndex++;
                 }
+            })
+            .on('end', () => {
+                try {
+                    const endReadFileTime = new Date().getTime();
+                    console.log(`Time to read file: ${endReadFileTime - startReadFileTime} ms`);
 
-                rowIndex++;
-            }
-        });
+                    prettyPrintMemoryUsage({
+                        nRows: nRows,
+                    });
 
-        rl.on('close', () => {
-            try {
-                const endReadFileTime = new Date().getTime();
-                console.log(`Time to read file: ${endReadFileTime - startReadFileTime} ms`);
+                    // Finalize the DataFrame after reading all rows
+                    // const df = finalizeDataFrame({ skuArray, priceArray, isAvailableArray, colorArray });
+                    // prettyPrintMemoryUsage({
+                    //     nRows,
+                    //     df
+                    // });
 
-                prettyPrintMemoryUsage({
-                    nRows: nRows,
-                });
+                    // Group by color and sum the price
+                    // console.time('Groupby color and Sum price');
+                    // const groupedByColor = df.groupby('color');
+                    // const summedFloatsByColor = df.sum(groupedByColor, 'price');
+                    // console.log('Sum of price by color groups:', summedFloatsByColor);
 
-                // Finalize the DataFrame after reading all rows
-                // const df = finalizeDataFrame(columns);
-                // prettyPrintMemoryUsage({
-                //     nRows,
-                //     df
-                // });
-
-                // // Group by color and sum the price
-                // console.time('Groupby color and Sum price');
-                // const groupedByColor = df.groupby('color');
-                // const summedFloatsByColor = df.sum(groupedByColor, 'price');
-                // console.log('Sum of price by color groups:', summedFloatsByColor);
-
-                // Resolve the promise
-                resolve();
-            } catch (err) {
-                // Reject the promise if any error occurs
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
+            })
+            .on('error', (err) => {
+                // Handle errors during file reading
                 reject(err);
-            }
-        });
-
-        rl.on('error', (err) => {
-            // Handle errors in reading the file
-            reject(err);
-        });
+            });
     });
 }
 

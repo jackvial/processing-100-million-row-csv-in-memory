@@ -1,5 +1,15 @@
 # Processing 100 Million Record CSV In Nodejs
 
+Assume we need the whole file in memory to perform multiple operations like:
+- Sorting
+- Join multiple files together (like SQL inner join)
+- Complex Grouping or Aggregation Across Multiple Columns
+- Deduplication
+- Window functions
+
+That would be really inconvenient or slow to do otherwise.
+Interesting problems to think about if you did not have the choice of loading all data in memory.
+
 1. Parsing the csv. Using CSV Parser.
     - Use WasteManifest or EchoExporter in example. Has a lot of columns
 2. Storing the data in memory. Naive memory implementation with array of objects. Memory usage grows quickly and runs out of memory
@@ -36,3 +46,7 @@
 
 ## Notes
 - Use charts and graph or just run and talk about examples in VSCode?
+
+
+## Datasets
+- eManifest WasteLines https://s3.amazonaws.com/rcrainfo-ftp/Production/Fixed-2024-09-16T03-00-00-0400/eManifest/EM_WASTE_LINE/EM_WASTE_LINE.zip
