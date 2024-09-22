@@ -12,15 +12,16 @@ def main():
     
     shippers = ['Clean Docks', 'Clean Planet', 'Eco Shipping', 'Green Chemicals Ltd.']
 
-    start_date = datetime(2000, 1, 1)  # Starting date
+    start_date = datetime(1996, 1, 1)
     rows = []
     
-    # Generate 1000 items per day, adding tqdm for progress tracking
-    for day in tqdm(range(0, 100000), desc="Generating daily shipments"):
+    # 10k days == ~27 years
+    for day in tqdm(range(0, 10000), desc="Generating daily shipments"):
         current_date = start_date + timedelta(days=day)
         timestamp = int(current_date.timestamp())
 
-        for _ in range(1000):  # Generate 1000 rows per day
+        # 10k items per day
+        for _ in range(10000):
             amount = random.uniform(0.01, 100)
             chem_name = random.choice(chemicals)
             shipper = random.choice(shippers)
