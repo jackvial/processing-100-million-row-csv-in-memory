@@ -12,7 +12,7 @@ export async function main() {
     const nRows = 10_000_000;
     memoryStats.push(getMemoryStats(0));
 
-    // Define constants for colors
+    // @TODO - build this dictionary as we read the CSV instead of predefining it
     const colorMap = {
         0: 'red',
         1: 'green',

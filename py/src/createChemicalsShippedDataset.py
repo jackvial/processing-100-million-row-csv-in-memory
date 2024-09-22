@@ -1,17 +1,22 @@
 import pandas as pd
 import random
-import time
 from datetime import datetime, timedelta
+from tqdm import tqdm  # Import tqdm for the progress bar
 
 def main():
-    chemicals = ['Sulfuric Acid', 'Hydrochloric Acid', 'Nitric Acid', 'Phosphoric Acid']
-    shippers = ['Clean Docks', 'Clean Planet']
+    # Selected 8 chemicals from different categories
+    chemicals = [
+        'Sulfuric Acid', 'Hydrochloric Acid', 'Sodium Hydroxide', 'Ammonium Nitrate',
+        'Ethylene Glycol', 'Methanol', 'Acetone', 'Chlorine'
+    ]
+    
+    shippers = ['Clean Docks', 'Clean Planet', 'Eco Shipping', 'Green Chemicals Ltd.']
 
     start_date = datetime(2000, 1, 1)  # Starting date
     rows = []
     
-    # We want to generate 1000 items per day
-    for day in range(0, 100000):
+    # Generate 1000 items per day, adding tqdm for progress tracking
+    for day in tqdm(range(0, 100000), desc="Generating daily shipments"):
         current_date = start_date + timedelta(days=day)
         timestamp = int(current_date.timestamp())
 
@@ -27,9 +32,15 @@ def main():
                 'shipped_at': timestamp
             })
     
-    # Convert to DataFrame (optional, for handling large data)
+    # Convert to DataFrame
     df = pd.DataFrame(rows)
     print(df.head())  # Display the first few rows
+
+    # shuffle the rows
+    df = df.sample(frac=1).reset_index(drop=True)
+
+    # Save to CSV
+    df.to_csv(f"/home/jack/code/df.ts/outputs/chemicals_shipped_{100_000_000}.csv", index=False)
     
 if __name__ == '__main__':
     main()
