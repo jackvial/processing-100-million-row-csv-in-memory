@@ -47,6 +47,14 @@ Interesting problems to think about if you did not have the choice of loading al
 ## Notes
 - Use charts and graph or just run and talk about examples in VSCode?
 
+## TODO
+- Move to ML PC
+- Change examples to use fake waste manifest
+- Create graphs for memory usage per 1 million rows loaded
+    - array of objects
+    - array of objects with string dictionary
+    - array buffers
+    - array buffers with more suitable datatypes
 
 ## Datasets
 - eManifest WasteLines https://s3.amazonaws.com/rcrainfo-ftp/Production/Fixed-2024-09-16T03-00-00-0400/eManifest/EM_WASTE_LINE/EM_WASTE_LINE.zip
