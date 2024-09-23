@@ -8,7 +8,6 @@ import fs from 'fs';
 export async function main() {
     const startTime = Date.now();
     const memoryStats: MemoryStatsRow[] = [];
-    memoryStats.push(getMemoryStats(0));
 
     const rows: any[] = [];
     const filePath = 'outputs/chemicals_shipped_100000000.csv';
@@ -24,6 +23,9 @@ export async function main() {
 
         rowIndex++;
     }).on('end', () => resolve()).on('error', (error) => reject(error)));
+
+
+    memoryStats.push(getMemoryStats(rows.length));
 }
 
 main();
