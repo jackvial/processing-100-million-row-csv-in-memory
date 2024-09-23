@@ -9,11 +9,9 @@ export async function main() {
     const startTime = Date.now();
     const memoryStats: MemoryStatsRow[] = [];
     memoryStats.push(getMemoryStats(0));
-    const nRows = 10_000_000;
 
-    console.time('Create Data');
     const rows: any[] = [];
-    const filePath = 'outputs/test_10000000_rows.csv';
+    const filePath = 'outputs/chemicals_shipped_100000000.csv';
     const readStream = fs.createReadStream(filePath);
 
     let rowIndex = 0;
