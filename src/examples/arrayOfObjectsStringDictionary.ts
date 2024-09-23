@@ -10,8 +10,6 @@ export async function main() {
     const startTime = Date.now();
     const memoryStats: MemoryStatsRow[] = [];
     const nRows = 100_000_000;
-
-    // Create maps for chemicals and shippers
     const chemMap: { [key: number]: string } = {};
     const chemStringToIndex: { [key: string]: number } = {};
     const shipperMap: { [key: number]: string } = {};
@@ -47,17 +45,8 @@ export async function main() {
             shipperIndex: shipperIndexMapped,
             shippedAt: parseInt(row.shipped_at, 10)
         });
-
-        if (rowIndex % 1_000_000 === 0) {
-            memoryStats.push(getMemoryStats(rowIndex));
-        }
-
         rowIndex++;
-    }).on('end', () => {
-        resolve();
-    }).on('error', (error) => {
-        reject(error);
-    }));
+    }).on('end', () => resolve()).on('error', (error) => reject(error)));
 
     memoryStats.push(getMemoryStats(nRows));
     writeStatsToCsv({
