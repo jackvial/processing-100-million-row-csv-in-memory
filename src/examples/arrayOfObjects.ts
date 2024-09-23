@@ -29,7 +29,7 @@ export async function main() {
     writeStatsToCsv({
         memoryStats,
         duration: Date.now() - startTime
-    }, `stats/arrayBuffer_${rows.length}.csv`);
+    }, `stats/arrayOfObjects_${rows.length}.csv`);
 }
 
 main();
