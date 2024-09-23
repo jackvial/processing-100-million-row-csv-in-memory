@@ -1,6 +1,7 @@
 import {
     getMemoryStats,
     MemoryStatsRow,
+    writeStatsToCsv
 } from "../utils"
 import csvParser from 'csv-parser';
 import fs from 'fs';
@@ -24,8 +25,11 @@ export async function main() {
         rowIndex++;
     }).on('end', () => resolve()).on('error', (error) => reject(error)));
 
-
     memoryStats.push(getMemoryStats(rows.length));
+    writeStatsToCsv({
+        memoryStats,
+        duration: Date.now() - startTime
+    }, `stats/arrayBuffer_${rows.length}.csv`);
 }
 
 main();
