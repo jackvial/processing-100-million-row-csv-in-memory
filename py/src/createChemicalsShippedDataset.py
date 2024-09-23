@@ -24,7 +24,7 @@ def main():
     ])
     
     batch_size = 10000  # Define a batch size to process
-    file_path = f"/home/jack/code/df.ts/outputs/chemicals_shipped_{100_000_000}.csv"
+    file_path = f"/home/ubuntu/code/df.ts/outputs/chemicals_shipped_{100_000_000}.csv"
     
     # Flag to indicate if the header needs to be written
     header_written = False
