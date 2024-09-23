@@ -5,10 +5,10 @@
   "main": "index.js",
   "scripts": {
     "b": "npx tsc",
-    "re0": "node --max-old-space-size=16384 dist/examples/arrayOfObjects.js",
-    "re1": "node --max-old-space-size=16384 dist/examples/arrayOfObjectsStringDictionary.js",
-    "re2": "node --max-old-space-size=16384 dist/examples/arrayBuffer.js",
-    "re3": "node --max-old-space-size=16384 dist/examples/polars.js"
+    "re0": "node --max-old-space-size=30720 dist/examples/arrayOfObjects.js",
+    "re1": "node --max-old-space-size=30720 dist/examples/arrayOfObjectsStringDictionary.js",
+    "re2": "node --max-old-space-size=30720 dist/examples/arrayBuffer.js",
+    "re3": "node --max-old-space-size=30720 dist/examples/polars.js"
   },
   "author": "",
   "license": "ISC",
