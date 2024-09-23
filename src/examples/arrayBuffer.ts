@@ -50,6 +50,10 @@ export async function main() {
             shipperArray[rowIndex] = shipperIndexMapped;
             shippedAtArray[rowIndex] = parseInt(row.shipped_at, 10);
 
+            if (rowIndex % 1_000_000 === 0) {
+                memoryStats.push(getMemoryStats(rowIndex));
+            }
+
             rowIndex++;
         })
         .on('end', () => resolve())
