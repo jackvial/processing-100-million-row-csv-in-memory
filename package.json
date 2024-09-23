@@ -9,7 +9,8 @@
     "re1": "node --max-old-space-size=30720 dist/examples/arrayOfObjectsStringDictionary.js",
     "re2": "node --max-old-space-size=30720 dist/examples/arrayBuffer.js",
     "re3": "node --max-old-space-size=30720 dist/examples/arrayBufferBetterTypes.js",
-    "re4": "node --max-old-space-size=30720 dist/examples/polars.js"
+    "re4": "node --max-old-space-size=30720 dist/examples/arrayBufferNullTracking.js",
+    "re5": "node --max-old-space-size=30720 dist/examples/polars.js"
   },
   "author": "",
   "license": "ISC",

@@ -12,6 +12,13 @@ export async function main() {
     memoryStats.push(getMemoryStats(0));
     
     const nRows = 100_000_000;
+    const buffer = new ArrayBuffer(nRows * (4 + 8 + 4 + 4 + 1));
+    const chemArray = new Uint32Array(buffer, 0, nRows);
+    const amountArray = new Float64Array(buffer, nRows * 4, nRows);
+    const shipperArray = new Uint32Array(buffer, nRows * 12, nRows);
+    const shippedAtArray = new Uint32Array(buffer, nRows * 16, nRows);
+    const nullTrackingArray = new Uint8Array(buffer, nRows * 20, nRows);
+    
     const chemMap: { [key: number]: string } = {};
     const reverseChemMap: { [key: string]: number } = {};
     let chemIndex = 0;
@@ -19,14 +26,6 @@ export async function main() {
     const shipperMap: { [key: number]: string } = {};
     const reverseShipperMap: { [key: string]: number } = {};
     let shipperIndex = 0;
-
-    const buffer = new ArrayBuffer(nRows * (4 + 8 + 4 + 4 + 1));
-    const chemArray = new Uint32Array(buffer, 0, nRows);
-    const amountArray = new Float64Array(buffer, nRows * 4, nRows);
-    const shipperArray = new Uint32Array(buffer, nRows * 12, nRows);
-    const shippedAtArray = new Uint32Array(buffer, nRows * 16, nRows);
-    const nullTrackingArray = new Uint8Array(buffer, nRows * 20, nRows);
-
     const filePath = 'outputs/chemicals_shipped_100000000.csv';
     const readStream = fs.createReadStream(filePath);
     let rowIndex = 0;
@@ -69,6 +68,11 @@ export async function main() {
             }
 
             nullTrackingArray[rowIndex] = nullByte;
+
+            if (rowIndex % 1_000_000 === 0) {
+                memoryStats.push(getMemoryStats(rowIndex));
+            }
+
             rowIndex++;
         })
         .on('end', () => resolve())
@@ -79,7 +83,7 @@ export async function main() {
     writeStatsToCsv({
         memoryStats,
         duration: Date.now() - startTime
-    }, `stats/arrayBuffer_${nRows}.csv`);
+    }, `stats/arrayBufferWithNullTracking_${nRows}.csv`);
 }
 
 main();
