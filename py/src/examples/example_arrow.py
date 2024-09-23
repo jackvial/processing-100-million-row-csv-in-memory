@@ -5,7 +5,7 @@ from memory_profiler import profile
 @profile
 def main():
     # Create a Dataset from the CSV file
-    dataset = ds.dataset("outputs/test_100000000_rows.csv", format="csv")
+    dataset = ds.dataset("outputs/chemicals_shipped_100000000.csv", format="csv")
 
     # Define the fields to select (optional)
     fields = ["color", "price"]

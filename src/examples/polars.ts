@@ -12,7 +12,6 @@ async function main() {
     const nRows = 100_000_000;
 
     memoryStats.push(getMemoryStats(0));
-    import pl from 'nodejs-polars';
     const df = pl.readCSV('outputs/chemicals_shipped_100000000.csv');
     console.log(df.head());
     memoryStats.push(getMemoryStats(nRows));
