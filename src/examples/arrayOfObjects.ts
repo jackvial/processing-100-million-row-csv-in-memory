@@ -9,9 +9,9 @@ import fs from 'fs';
 export async function main() {
     const startTime = Date.now();
     const memoryStats: MemoryStatsRow[] = [];
-    const nRows = 10_000_000;
+    const nRows = 100_000_000;
     const rows: any[] = [];
-    const filePath = 'outputs/test_10000000_rows.csv';
+    const filePath = `outputs/chemicals_shipped_${nRows}.csv`;
     const readStream = fs.createReadStream(filePath);
 
     let rowIndex = 0;
