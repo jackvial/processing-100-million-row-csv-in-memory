@@ -1,7 +1,6 @@
 import {
     getMemoryStats,
     MemoryStatsRow,
-    writeStatsToCsv
 } from "../utils"
 import csvParser from 'csv-parser';
 import fs from 'fs';
@@ -9,9 +8,12 @@ import fs from 'fs';
 export async function main() {
     const startTime = Date.now();
     const memoryStats: MemoryStatsRow[] = [];
-    const nRows = 100_000_000;
+    memoryStats.push(getMemoryStats(0));
+    const nRows = 10_000_000;
+
+    console.time('Create Data');
     const rows: any[] = [];
-    const filePath = `outputs/chemicals_shipped_${nRows}.csv`;
+    const filePath = 'outputs/test_10000000_rows.csv';
     const readStream = fs.createReadStream(filePath);
 
     let rowIndex = 0;
@@ -23,17 +25,7 @@ export async function main() {
         }
 
         rowIndex++;
-    }).on('end', () => {
-        resolve();
-    }).on('error', (error) => {
-        reject(error);
-    }));
-
-    memoryStats.push(getMemoryStats(nRows));
-    writeStatsToCsv({
-        memoryStats,
-        duration: Date.now() - startTime
-    }, `stats/arrayOfObjects_${rows.length}.csv`);
+    }).on('end', () => resolve()).on('error', (error) => reject(error)));
 }
 
 main();
