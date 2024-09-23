@@ -23,7 +23,9 @@ export async function main() {
         }
 
         rowIndex++;
-    }).on('end', () => resolve()).on('error', (error) => reject(error)));
+    })
+    .on('end', () => resolve())
+    .on('error', (error) => reject(error)));
 
     memoryStats.push(getMemoryStats(rows.length));
     writeStatsToCsv({
