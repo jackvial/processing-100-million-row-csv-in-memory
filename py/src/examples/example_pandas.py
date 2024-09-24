@@ -1,16 +1,17 @@
-import pandas as pd
 from memory_profiler import profile
+import pandas as pd
 
 @profile
 def main():
-    # Read the CSV file into a pandas DataFrame, selecting specific columns
-    df = pd.read_csv("outputs/chemicals_shipped_100000000.csv", usecols=["color", "price"])
-
-    # Group by 'color' and compute the sum of 'price'
-    grouped_df = df.groupby("color")["price"].sum().reset_index()
-
-    # Print the resulting DataFrame
-    print(grouped_df)
+    dtype_dict = {
+        'chem_name': 'category',  # Use category type for strings to save memory
+        'amount': 'float32',      # Use float32 to reduce memory for float columns
+        'shipper': 'category',    # Use category for shipper strings
+        'shipped_at': 'uint32'    # Use uint32 for smaller integers
+    }
+    df = pd.read_csv("outputs/chemicals_shipped_100000000.csv", dtype=dtype_dict)
+    print(df.head())
 
 if __name__ == "__main__":
     main()
+    

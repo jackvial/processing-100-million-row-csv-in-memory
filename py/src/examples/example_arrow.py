@@ -1,24 +1,19 @@
 import pyarrow.dataset as ds
-import pyarrow.compute as pc
+import pyarrow as pa
 from memory_profiler import profile
+
+schema = pa.schema([
+    ('chem_name', pa.dictionary(index_type=pa.int32(), value_type=pa.string())),
+    ('amount', pa.float32()),
+    ('shipper', pa.dictionary(index_type=pa.int32(), value_type=pa.string())),
+    ('shipped_at', pa.uint32()),
+])
 
 @profile
 def main():
-    # Create a Dataset from the CSV file
-    dataset = ds.dataset("outputs/chemicals_shipped_100000000.csv", format="csv")
-
-    # Define the fields to select (optional)
-    fields = ["color", "price"]
-
-    # Scan the Dataset and convert it to a Table
-    table = dataset.to_table(columns=fields)
-
-    # Group by 'color' and compute the sum of 'price'
-    grouped_table = table.group_by("color").aggregate([("price", "sum")])
-
-    # Convert the result to a pandas DataFrame
-    df = grouped_table.to_pandas()
-    print(df)
+    dataset = ds.dataset("outputs/chemicals_shipped_100000000.csv", format="csv", schema=schema)
+    table = dataset.to_table()
+    print(table.slice(0, 5))
 
 if __name__ == "__main__":
     main()
