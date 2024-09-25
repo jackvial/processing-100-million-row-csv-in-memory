@@ -4,3 +4,4 @@ outputs
 one_hundred_million_env
 __pycache__
 py/src/examples/__pycache__
+stats
