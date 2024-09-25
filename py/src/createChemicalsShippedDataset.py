@@ -3,6 +3,7 @@ import pandas as pd
 import random
 from datetime import datetime, timedelta
 from tqdm import tqdm
+import os
 
 def main():
     # Selected 8 chemicals from different categories
@@ -22,9 +23,12 @@ def main():
         ('shipper', pa.string()),
         ('shipped_at', pa.int64()),
     ])
+
+    # Create outputs directory if it doesn't exist
+    os.makedirs("outputs", exist_ok=True)
     
     batch_size = 10000  # Define a batch size to process
-    file_path = f"/home/ubuntu/code/df.ts/outputs/chemicals_shipped_{100_000_000}.csv"
+    file_path = f"outputs/chemicals_shipped_{100_000_000}.csv"
     
     # Flag to indicate if the header needs to be written
     header_written = False
