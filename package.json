@@ -10,7 +10,8 @@
     "re2": "node --max-old-space-size=30720 dist/examples/arrayBuffer.js",
     "re3": "node --max-old-space-size=30720 dist/examples/arrayBufferBetterTypes.js",
     "re4": "node --max-old-space-size=30720 dist/examples/arrayBufferNullTracking.js",
-    "re5": "node --max-old-space-size=30720 dist/examples/polars.js"
+    "re5": "node --max-old-space-size=30720 dist/examples/polars.js",
+    "re6": "node --max-old-space-size=24576 dist/multithreadedCsvLoader/index.js"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +20,7 @@
     "csv-parser": "^3.0.0",
     "fast-csv": "^5.0.1",
     "nodejs-polars": "^0.15.0",
+    "split2": "^4.2.0",
     "typescript": "^5.6.2"
   },
   "devDependencies": {
