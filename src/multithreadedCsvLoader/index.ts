@@ -144,25 +144,20 @@ for (const workerData of workers) {
             console.log(`Worker ${msg.workerId} done processing`);
             workersDone++;
 
-            // Deallocate the workers data
-            workerData.dataBuffer = null;
-            workerData.dataView = null;
-            workerData.lineOffsets = null;
-            workerData.lineLengths = null;
-
             if (workersDone === N_WORKERS) {
 
                 // print slice of each array
-                console.log(chemArray.slice(0, 5));
-                console.log(amountArray.slice(0, 5));
-                console.log(shipperArray.slice(0, 5));
-                console.log(shippedAtArray.slice(0, 5));
+                // console.log(chemArray.slice(0, 5));
+                // console.log(amountArray.slice(0, 5));
+                // console.log(shipperArray.slice(0, 5));
+                // console.log(shippedAtArray.slice(0, 5));
 
                 // log the last 5 elements of each array
-                console.log(chemArray.slice(-5));
-                console.log(amountArray.slice(-5));
-                console.log(shipperArray.slice(-5));
-                console.log(shippedAtArray.slice(-5));
+                // find index of first element with 0 value in amount array
+                let index = amountArray.findIndex((element) => element === 0);
+                console.log(index);
+                console.log(amountArray.slice(index - 5, index));
+                console.log(amountArray.slice(index, index + 5));
 
                 getMemoryStats(100_000_000);
 
